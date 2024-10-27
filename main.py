@@ -82,6 +82,14 @@ elif selected_page == "Home / About This App":
             2. Show all financial assistance schemes at a glance. 
         ''')
 
+    with st.expander("Disclaimer"):
+        st.write('''
+            IMPORTANT NOTICE: This web application is a prototype developed for educational purposes only. The information provided here is NOT intended for real-world usage and should not be relied upon for making any decisions, especially those related to financial, legal, or healthcare matters.\
+            Furthermore, please be aware that the LLM may generate inaccurate or incorrect information. You assume full responsibility for how you use any generated output.\
+            Always consult with qualified professionals for accurate and personalized advice. 
+        ''')
+
+
 elif selected_page == "Methodology":
     st.title("Methodology flow for the LLM")
     
@@ -113,3 +121,9 @@ elif selected_page == "Methodology":
 
     # Display the flowchart
     st.code(flowchart, language='plaintext')
+
+    with st.expander("Further explanations"):
+        st.write('''
+            1. Problem Statement: Difficulties in finding the suitable financial assistance schemes.
+            2. Proposed Solution: Getting a chatbot with information on the financial assistance schemes to answer any queries in NLP.
+        ''')
