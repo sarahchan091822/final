@@ -5,6 +5,16 @@ import pandas as pd
 from logics.customer_query_handler import process_user_message
 import random  
 import hmac 
+import os
+from langchain_community.document_loaders import WebBaseLoader
+from dotenv import load_dotenv
+from openai import OpenAI
+import tiktoken
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.embeddings import OpenAIEmbeddings
+from langchain.vectorstores import Chroma
+from langchain.chains import RetrievalQA
+from langchain.llms import OpenAI
 
 from helper_functions.utility import check_password
 
@@ -57,6 +67,69 @@ elif selected_page == "View All Financial Assistance in NP":
     # Read the CSV file
     df = pd.read_csv("2023FinancialAssistanceSchemes.csv")
     st.write(df)   
+
+    # Load environment variables
+    load_dotenv()
+
+    # Set up the OpenAI API key
+    api_key = os.getenv("OPENAI_API_KEY")
+
+    with st.form("my_form"):
+        url = "https://www.np.edu.sg/admissions-enrolment/guide-for-prospective-students/aid"
+        query = st.text_input("For updated information from the NP website, ask questions here:")
+        submitted = st.form_submit_button("Submit")
+
+    if submitted:
+        if url and query:
+            st.info("Loading documents...")
+            # Load the document
+            loader = WebBaseLoader(url)
+            documents = loader.load()
+
+            st.info("Processing documents...")
+
+            # Split and chunk the documents
+            text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=20)
+            all_splits = text_splitter.split_documents(documents)
+
+            # Store embeddings in vector database
+            persist_directory = 'db'
+            embedding = OpenAIEmbeddings()
+            vectordb = Chroma.from_documents(
+                documents=all_splits,
+                embedding=embedding,
+                persist_directory=persist_directory
+            )
+            vectordb.persist()
+
+            st.success("Generating response...")
+
+            # Retrieve relevant chunks based on query
+            docs = vectordb.similarity_search(query)
+
+            llm = OpenAI(temperature=0)
+
+            # Use RetrievalQA instead of load_qa_with_sources_chain
+            qa_chain = RetrievalQA.from_chain_type(
+                llm=llm,
+                retriever=vectordb.as_retriever(),
+                chain_type="stuff",
+                return_source_documents=True
+            )
+
+            # Run the QA chain
+            result = qa_chain({"query": query})
+            result_text = result["result"]
+
+            # Split the answer into lines and take the first 3 for summary
+            summary_lines = result_text.splitlines()[:3]
+
+            # Display the summary
+            st.subheader("Summary:")
+            for line in summary_lines:  
+                st.write(line)
+
+
 
 
 elif selected_page == "Home / About This App":
