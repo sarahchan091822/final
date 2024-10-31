@@ -6,6 +6,8 @@ from logics.customer_query_handler import process_user_message
 import random  
 import hmac 
 import os
+import sqlite3
+
 from langchain_community.document_loaders import WebBaseLoader
 from dotenv import load_dotenv
 from openai import OpenAI
