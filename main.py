@@ -22,10 +22,10 @@ from helper_functions.utility import check_password
 if not check_password():  
     st.stop()
 
-# Set page configuration as the first Streamlit command
+# Set page configuration
 st.set_page_config(
-    page_title="My Streamlit App",
-    page_icon=":house:",
+    page_title="NP Financial Assistance",
+    page_icon=":moneybag:",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -43,7 +43,7 @@ if selected_page == "Q&A":
     form = st.form(key="form")
     form.subheader("What do you want to know about financial assistance schemes in NP?")
 
-    user_prompt = form.text_area("Suggested question: I am looking at tuition fee help. I am from a low income family. / What help can I get for laptop purchase?", height=200)
+    user_prompt = form.text_area("Suggested question: Financial aid for Malay students. / I am looking at tuition fee help. I am from a low income family. / What help can I get for laptop purchase?", height=200)
 
     if form.form_submit_button("Submit"):
         st.toast(f"User Input Submitted: {user_prompt}")
@@ -62,22 +62,19 @@ if selected_page == "Q&A":
             st.write("No relevant schemes found.")
 
 elif selected_page == "View All Financial Assistance in NP":
-    st.title("All Types of Financial Assistance in NP")
-    
-    # Read the CSV file
-    df = pd.read_csv("2023FinancialAssistanceSchemes.csv")
-    st.write(df)   
-
+    st.title("Ask questions on up-to-date financial assistance in NP")
     # Load environment variables
     load_dotenv()
 
     # Set up the OpenAI API key
     api_key = os.getenv("OPENAI_API_KEY")
 
-    with st.form("my_form"):
-        url = "https://www.np.edu.sg/admissions-enrolment/guide-for-prospective-students/aid"
-        query = st.text_input("For updated information from the NP website, ask questions here:")
-        submitted = st.form_submit_button("Submit")
+    form = st.form(key="my_form")
+    form.subheader("For updated information from the NP website, ask questions here:")
+    url = "https://www.np.edu.sg/admissions-enrolment/guide-for-prospective-students/aid"
+    query = form.text_area("Ask me!", height=200)
+
+    submitted = form.form_submit_button("Submit") 
 
     if submitted:
         if url and query:
@@ -130,6 +127,13 @@ elif selected_page == "View All Financial Assistance in NP":
                 st.write(line)
 
 
+    st.title("All Types of Financial Assistance in NP")
+    
+    # Read the CSV file
+    df = pd.read_csv("2023FinancialAssistanceSchemes.csv")
+    st.write(df)   
+
+
 
 
 elif selected_page == "Home / About This App":
@@ -138,33 +142,41 @@ elif selected_page == "Home / About This App":
 
     with st.expander("What do we have here?"):
         st.write('''
-            This site has all information about financial assistance schemes available to students in NP.
+            This site has all information about **_financial assistance schemes_** available to students in NP.
         ''')
 
     with st.expander("How to use this app?"):
         st.write('''
-            1. Navigate to the Q&A page
-            2. Enter your prompt in the box
-            3. Click Submit
-            4. Output generated
+            1. Navigate to the different pages.
+            2. Enter your prompts for the LLMs.
+            3. Click Submit.
+            4. Response generated!
         ''')
 
     with st.expander("Use cases"):
         st.write('''
             1. Ask questions related to the financial assistance schemes.
-            2. Show all financial assistance schemes at a glance. 
+            2. Ask questions related to up-to-date information on website.
+            3. Show all financial assistance schemes at a glance. 
+        ''')
+
+    with st.expander("Further Explanations"):
+        st.write('''
+            1. **Problem Statement**: Users face difficulties finding suitable financial assistance schemes.
+            2. **Proposed Solution (a)**: Creating a chatbot that uses a pre-defined dataset of financial assistance schemes to answer questions via NLP.
+            3. **Proposed Solution (b)**: Enabling the chatbot to answer questions using up-to-date information retrieved from the financial assistance schemes website.
         ''')
 
     with st.expander("Disclaimer"):
         st.write('''
-            IMPORTANT NOTICE: This web application is a prototype developed for educational purposes only. The information provided here is NOT intended for real-world usage and should not be relied upon for making any decisions, especially those related to financial, legal, or healthcare matters.\
+            **IMPORTANT NOTICE:** This web application is a prototype developed for educational purposes only. The information provided here is NOT intended for real-world usage and should not be relied upon for making any decisions, especially those related to financial, legal, or healthcare matters.\
             Furthermore, please be aware that the LLM may generate inaccurate or incorrect information. You assume full responsibility for how you use any generated output.\
             Always consult with qualified professionals for accurate and personalized advice. 
         ''')
 
 
 elif selected_page == "Methodology":
-    st.title("Methodology flow for the LLM")
+    st.title("Methodology flow for the LLM for Q&A")
     
     flowchart = """
   Start
@@ -195,8 +207,44 @@ elif selected_page == "Methodology":
     # Display the flowchart
     st.code(flowchart, language='plaintext')
 
-    with st.expander("Further explanations"):
-        st.write('''
-            1. Problem Statement: Difficulties in finding the suitable financial assistance schemes.
-            2. Proposed Solution: Getting a chatbot with information on the financial assistance schemes to answer any queries in NLP.
-        ''')
+    # Another flowchart
+    st.title("Methodology flow for the LLM for up-to-date web search")
+    
+    flowchart2 = """
+  START
+    |
+    v
+[Load CSV File]
+    |
+    v
+[Set Up Environment Variables]
+    |
+    v
+[User Input (Form: URL and Query)]
+    |
+    v
+[Load Web Content]
+    |
+    v
+[Split Text into Chunks]
+    |
+    v
+[Store Embeddings in Vector Database]
+    |
+    +------------------------------------+
+    |                                    |
+    | Relevant Chunks Found              | No Relevant Chunks Found
+    |                                    |
+    v                                    |
+[Generate Response]                      |
+    |                                    |
+    v                                    |
+[Summarize and Display Response] <-------+
+    |
+    v
+   END
+
+"""
+
+    # Display the flowchart
+    st.code(flowchart2, language='plaintext')
